@@ -1,43 +1,35 @@
-from vidgear.gears import VideoGear
-from vidgear.gears import WriteGear
-import cv2
 import time
-from datetime import datetime
-from popup import init_popup
-import shutil
+import os
+from datetime import datetime, timedelta
+from video_capture import start_shoot
+from multiprocessing import Process
+from saver import Saver
+from config import SAVE_TIMEOUT, SAVE_GAP, TIMEOUT, READ_TIMEOUT, FILENAME
 
-TIME = 1
-FRAMERATE = 16
-RESOLUTION = 244
 
-options = {
-    "CAP_PROP_FRAME_WIDTH": RESOLUTION,
-    "CAP_PROP_FRAME_HEIGHT": RESOLUTION,
-    "CAP_PROP_FPS": FRAMERATE,
-}
+def schedule():
+    while True:
+        if not os.path.exists(FILENAME):
+            time.sleep(READ_TIMEOUT)
+            continue
 
-output_params = {}
+        with open(FILENAME, "r") as file:
+            str_delta = file.read()
+            t = datetime.strptime(str_delta, "%H:%M:%S")
+            delta = timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
+            cur_delta = timedelta(seconds=TIMEOUT)
+            if cur_delta < delta:
+                print("start shoot video")
+                start_shoot()
+                if os.path.exists(FILENAME):
+                    os.remove(FILENAME)
 
-stream = VideoGear(source=0, logging=True, **options).start()
+            time.sleep(READ_TIMEOUT)
 
-filename = f"{datetime.now()}.mp4"
 
-writer = WriteGear(output_filename=filename, logging=True, **output_params)
-
-start = time.perf_counter()
-while True:
-    frame = stream.read()
-
-    if frame is None:
-        break
-
-    writer.write(frame)
-
-    stop = time.perf_counter()
-    if stop - start > TIME:
-        break
-
-stream.stop()
-writer.close()
-
-new_location = shutil.move(filename, init_popup())
+if __name__ == "__main__":
+    S = Saver(SAVE_GAP, SAVE_TIMEOUT, FILENAME)
+    proc = Process(target=S.save_state, daemon=True)
+    proc.start()
+    schedule()
+    proc.terminate()

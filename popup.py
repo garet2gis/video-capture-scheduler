@@ -31,7 +31,7 @@ def init_popup() -> str:
     root.eval('tk::PlaceWindow . center')
 
     Button(root, text=choices[AWAKE], command=lambda: choice(AWAKE)).pack(expand=True)
-    Button(root, text=choices[FINE], command=lambda: choice(FINE)).pack(expand=True)
+    # Button(root, text=choices[FINE], command=lambda: choice(FINE)).pack(expand=True)
     Button(root, text=choices[TIRED], command=lambda: choice(TIRED)).pack(expand=True)
 
     root.mainloop()

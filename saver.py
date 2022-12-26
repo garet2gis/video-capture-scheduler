@@ -2,12 +2,6 @@ import time
 from datetime import datetime, timedelta
 import os.path
 
-# seconds
-SAVE_GAP = 10
-# seconds
-SAVE_TIMEOUT = 5
-FILENAME = "state.txt"
-
 
 # Сохраняет время работы программы с промежутком SAVE_GAP
 # и таймаутом между попытками сохранения SAVE_TIMEOUT
@@ -50,5 +44,10 @@ class Saver:
 
 
 if __name__ == "__main__":
+    # seconds
+    SAVE_GAP = 10
+    # seconds
+    SAVE_TIMEOUT = 5
+    FILENAME = "state.txt"
     s = Saver(SAVE_GAP, SAVE_TIMEOUT, FILENAME)
     s.save_state()

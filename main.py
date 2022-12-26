@@ -8,6 +8,8 @@ from config import SAVE_TIMEOUT, SAVE_GAP, TIMEOUT, READ_TIMEOUT, FILENAME
 
 
 def schedule():
+    print("first start shoot video")
+    start_shoot()
     while True:
         if not os.path.exists(FILENAME):
             time.sleep(READ_TIMEOUT)

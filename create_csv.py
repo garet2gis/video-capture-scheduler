@@ -17,6 +17,18 @@ right_eye = [[33, 133], [160, 144], [159, 145], [158, 153]]  # right eye landmar
 left_eye = [[263, 362], [387, 373], [386, 374], [385, 380]]  # left eye landmark positions
 mouth = [[61, 291], [39, 181], [0, 17], [269, 405]]  # mouth landmark coordinates
 
+SHOW_MESH = frozenset([
+    (33, 133), (160, 144), (159, 145), (158, 153),
+    (263, 362), (387, 373), (386, 374), (385, 380),
+    (61, 291), (39, 181), (0, 17), (269, 405)
+])
+
+connections_drawing_spec = mp_drawing.DrawingSpec(
+        thickness=1,
+        circle_radius=3,
+        color=(255, 255, 255)
+    )
+
 
 def distance(p1, p2):
     return (((p1[:2] - p2[:2]) ** 2).sum()) ** 0.5
@@ -132,6 +144,15 @@ def get_features(video_path):
                 features.append([frame_count, eye, mouth, area_eye, area_mouth, pupil])
                 frame_count += 1
 
+            #     for face_landmarks in results.multi_face_landmarks:
+            #         mp_drawing.draw_landmarks(
+            #             image=image,
+            #             landmark_list=face_landmarks,
+            #             connections=SHOW_MESH,
+            #             landmark_drawing_spec=None,
+            #             connection_drawing_spec=connections_drawing_spec)
+            #
+            # cv2.imshow('MediaPipe Face Mesh', cv2.flip(image, 1))
             if cv2.waitKey(5) & 0xFF == 27:
                 break
 

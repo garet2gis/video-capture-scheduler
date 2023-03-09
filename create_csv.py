@@ -24,10 +24,10 @@ SHOW_MESH = frozenset([
 ])
 
 connections_drawing_spec = mp_drawing.DrawingSpec(
-        thickness=1,
-        circle_radius=3,
-        color=(255, 255, 255)
-    )
+    thickness=1,
+    circle_radius=3,
+    color=(255, 255, 255)
+)
 
 
 def distance(p1, p2):
@@ -90,12 +90,13 @@ def pupil_feature(landmarks):
             pupil_circularity(landmarks, right_eye)) / 2
 
 
-def get_features(video_path):
+def get_features(video_path, cur_video, pass_frame=2):
     cap = cv2.VideoCapture(video_path)
     features = []
     frame_count = 0
 
-    pass_frame = False
+    # every 2 frame
+    cur_pass = 0
 
     with mp_face_mesh.FaceMesh(
             max_num_faces=1,
@@ -103,18 +104,19 @@ def get_features(video_path):
             min_detection_confidence=0.5,
             min_tracking_confidence=0.5) as face_mesh:
         while cap.isOpened():
-            if frame_count == 221:
+            if frame_count == 220:
                 break
-
-            if pass_frame:
-                pass_frame = False
-                continue
-            pass_frame = True
 
             success, image = cap.read()
-
             if not success:
                 break
+
+            # skip frames
+            cur_pass += 1
+            if cur_pass < pass_frame:
+                continue
+            cur_pass = 0
+
             # To improve performance, optionally mark the image as not writeable to
             # pass by reference.
             image.flags.writeable = False
@@ -141,7 +143,7 @@ def get_features(video_path):
                 area_mouth = area_mouth_feature(landmarks_positions)
                 pupil = pupil_feature(landmarks_positions)
 
-                features.append([frame_count, eye, mouth, area_eye, area_mouth, pupil])
+                features.append([cur_video, frame_count, eye, mouth, area_eye, area_mouth, pupil])
                 frame_count += 1
 
             #     for face_landmarks in results.multi_face_landmarks:
@@ -161,7 +163,7 @@ def get_features(video_path):
     return features
 
 
-header = ['frame_count', 'eye', 'mouth', 'area_eye', 'area_mouth', 'pupil', 'label']
+header = ['video_count', 'frame_count', 'eye', 'mouth', 'area_eye', 'area_mouth', 'pupil', 'label']
 
 with open('data.csv', 'w', encoding='UTF8') as f:
     writer = csv.writer(f)
@@ -169,21 +171,25 @@ with open('data.csv', 'w', encoding='UTF8') as f:
     # write the header
     writer.writerow(header)
 
+    cur_video_number = 0
+
     for filename in os.listdir("tired"):
         if filename[-3:] != 'mp4':
             continue
         print(filename)
-        features = get_features(f'./tired/{filename}')
+        features = get_features(f'./tired/{filename}', cur_video_number)
         for row in features:
             # write the row
             writer.writerow([*row, 1])
+        cur_video_number += 1
 
     for filename in os.listdir("awake"):
         if filename[-3:] != 'mp4':
             continue
         print(filename)
-        features = get_features(f'./awake/{filename}')
+        features = get_features(f'./awake/{filename}', cur_video_number)
 
         for row in features:
             # write the row
             writer.writerow([*row, 0])
+        cur_video_number += 1
